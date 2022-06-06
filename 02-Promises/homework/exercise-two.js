@@ -36,23 +36,34 @@ function problemA () {
    */
 
   // callback version
-  async.each(['poem-two/stanza-01.txt', 'poem-two/stanza-02.txt'],
-    function (filename, eachDone) {
-      readFile(filename, function (err, stanza) {
-        console.log('-- A. callback version --');
-        blue(stanza);
-        eachDone();
-      });
-    },
-    function (err) {
-      console.log('-- A. callback version done --');
-    }
-  );
+  // async.each(['poem-two/stanza-01.txt', 'poem-two/stanza-02.txt'],
+  //   function (filename, eachDone) {
+  //     readFile(filename, function (err, stanza) {
+  //       console.log('-- A. callback version --');
+  //       blue(stanza);
+  //       eachDone();
+  //     });
+  //   },
+  //   function (err) {
+  //     console.log('-- A. callback version done --');
+  //   }
+  // );
 
   // promise version
   // ???
-
+  // Promise.all([primerMetodo(), segundoMetodo(), tercerMetodo()])
+  // .then(function(resultado){
+  //  console.log(resultado); //un arreglo con los valores pasamos a resolve en cada metodo
+  // });
+  let p1 = promisifiedReadFile('poem-two/stanza-01.txt').then(resultado1 => blue(resultado1));
+  let p2 = promisifiedReadFile('poem-two/stanza-02.txt').then(resultado2 => blue(resultado2));
+  Promise.all([p1, p2])
+  .then(()=> console.log('done'));
+  
 }
+
+
+
 
 function problemB () {
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -69,21 +80,32 @@ function problemB () {
   });
 
   // callback version
-  async.each(filenames,
-    function (filename, eachDone) {
-      readFile(filename, function (err, stanza) {
-        console.log('-- B. callback version --');
-        blue(stanza);
-        eachDone();
-      });
-    },
-    function (err) {
-      console.log('-- B. callback version done --');
-    }
-  );
+  // async.each(filenames,
+  //   function (filename, eachDone) {
+  //     readFile(filename, function (err, stanza) {
+  //       console.log('-- B. callback version --');
+  //       blue(stanza);
+  //       eachDone();
+  //     });
+  //   },
+  //   function (err) {
+  //     console.log('-- B. callback version done --');
+  //   }
+  // );
 
   // promise version
   // ???
+//hago un map con las promesas 
+let arrPromesas = filenames.map((fn) => promisifiedReadFile(fn));
+Promise.all(arrPromesas)
+  .then( (respuesta) => {//en respuesta tengo un arreglo con los poemas
+    console.log('-- B. promise version --');
+    respuesta.forEach(poema => blue(poema));//cada elemento del arreglo es un poema que lo imprimo con la funcion blue
+    console.log('-- A. callback version done --');
+  })
+// Version reducida:
+// let arrPromesas = filenames.map(file => promisifiedReadFile(file).then(resultado => blue(resultado)));
+// Promise.all(arrPromesas).then(()=>console.log('done'));
 
 }
 
@@ -103,22 +125,35 @@ function problemC () {
   });
 
   // callback version
-  async.eachSeries(filenames,
-    function (filename, eachDone) {
-      readFile(filename, function (err, stanza) {
-        console.log('-- C. callback version --');
-        blue(stanza);
-        eachDone();
-      });
-    },
-    function (err) {
-      console.log('-- C. callback version done --');
-    }
-  );
+  // async.eachSeries(filenames,
+  //   function (filename, eachDone) {
+  //     readFile(filename, function (err, stanza) {
+  //       console.log('-- C. callback version --');
+  //       blue(stanza);
+  //       eachDone();
+  //     });
+  //   },
+  //   function (err) {
+  //     console.log('-- C. callback version done --');
+  //   }
+  // );
 
   // promise version
   // ???
+  //filenames es el arreglo con los nombres de los archivos
+  filenames.reduce((p, fn) => {//el valor inicial es una promesa, el reduce devolvera una promesa
+    return p.then((stanza) => {
+      if (stanza) blue(stanza);
+      return promisifiedReadFile(fn);//aplica la promesa a cada elemento del arreglo
+    });
+  },    
+    Promise.resolve(false)//valor inicial del reduce, devuelve una promesa con resolve false
+  ).then((stanza) => {
+    blue(stanza);
+    console.log('-- A. callback version done --')
+  });
 
+  //ver version de martina con for en vez de reduce
 }
 
 function problemD () {
@@ -139,24 +174,34 @@ function problemD () {
   filenames[randIdx] = 'wrong-file-name-' + (randIdx + 1) + '.txt';
 
   // callback version
-  async.eachSeries(filenames,
-    function (filename, eachDone) {
-      readFile(filename, function (err, stanza) {
-        console.log('-- D. callback version --');
-        if (err) return eachDone(err);
-        blue(stanza);
-        eachDone();
-      });
-    },
-    function (err) {
-      if (err) magenta(new Error(err));
-      console.log('-- D. callback version done --');
-    }
-  );
+  // async.eachSeries(filenames,
+  //   function (filename, eachDone) {
+  //     readFile(filename, function (err, stanza) {
+  //       console.log('-- D. callback version --');
+  //       if (err) return eachDone(err);
+  //       blue(stanza);
+  //       eachDone();
+  //     });
+  //   },
+  //   function (err) {
+  //     if (err) magenta(new Error(err));
+  //     console.log('-- D. callback version done --');
+  //   }
+  // );
 
   // promise version
   // ???
-
+//hago un map con las promesas 
+var arrPromesas = filenames.map((fn) => promisifiedReadFile(fn));
+Promise.all(arrPromesas)
+  .then( (respuesta) => {//en respuesta tengo un arreglo con los poemas
+    console.log('-- D. promise version --');
+    respuesta.forEach(poema => blue(poema));//cada elemento del arreglo es un poema que lo imprimo con la funcion blue
+    console.log('-- D. callback version done --');
+  }).catch( (error) => {
+    magenta(new Error(error));
+    console.log('-- D. callback version done --');
+  })
 }
 
 function problemE () {
@@ -169,5 +214,11 @@ function problemE () {
   var fs = require('fs');
   function promisifiedWriteFile (filename, str) {
     // tu código aquí
+    return new Promise((resuelto, cancelada) => {
+      fs.writeFile(filename, str, 'utf8', function(err) {
+        if(err) return cancelada(err);
+        resuelto();
+      });
+    })
   }
 }
