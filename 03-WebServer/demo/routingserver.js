@@ -7,12 +7,15 @@ http.createServer( function(req, res){
 		var html = fs.readFileSync(__dirname +'/html/index.html');
 		res.end(html);
 	}
-	if(req.url === '/api'){ //Si la URL es /api devolvemos el objeto
+	else if(req.url === '/api'){ //Si la URL es /api devolvemos el objeto
 		res.writeHead(200, { 'Content-Type':'application/json' })
 		var obj = {
 			nombre: 'Juan',
 			apellido: 'Perez'
 		};	
 		res.end( JSON.stringify(obj) );
-	} 
+	} else {
+		res.writeHead(404);
+		res.end('error 404')
+	}
 }).listen(1337, '127.0.0.1');

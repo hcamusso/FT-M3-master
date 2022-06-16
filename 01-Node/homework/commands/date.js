@@ -1,4 +1,5 @@
-var coman = function() {process.stdout.write(Date());
+var coman = function(args, write) {
+    write(Date());
 }
 
 module.exports = coman;
